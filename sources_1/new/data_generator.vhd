@@ -8,7 +8,7 @@
 -- Project Name: Neural Recording System ECD622
 -- Target Devices: CMODA7-35T
 -- Tool Versions: 
--- Description: Testing the FT245 style Sync Fifo on FT2232HL Mini Module
+-- Description: Module create for Testing the FT245 style Sync Fifo on FT2232HL Mini Module
 -- 
 -- Dependencies: 
 -- 
@@ -43,25 +43,21 @@ end data_generator;
 
 architecture Behavioral of data_generator is
 ----STATES AND STUFF
-	type state_t is  (IDLE, TX_BYTE_1, TX_BYTE_2);
+	--type state_t is  (IDLE, TX_BYTE_1, TX_BYTE_2);
+	type state_t is  (IDLE, WAIT_TXE_LOW, TRANSMIT);
 	signal state, next_state: state_t;
 
 ----DATA TO BE TRANSMITED	
-	signal data_tx, next_data_tx: std_logic_vector (15 downto 0);
-
+	--signal data_tx, next_data_tx: std_logic_vector (15 downto 0);
+	signal data_tx, next_data_tx : std_logic_vector (7 downto 0);
 ----WHICH BYTE TO TRANSFER
-	signal byte_count, next_byte_count: std_logic_vector (0 downto 0);
+	--signal byte_count, next_byte_count: std_logic_vector (0 downto 0);
 	
 begin
-	process(clk) begin
-		if rising_edge(clk) then 
-			state <= IDLE when reset else next_state;
-		end if;
-	end process;
-	
+ 
 	process(clk) begin
 		if rising_edge(clk) then
-			byte_count <= next_byte_count;
+			state <= IDLE when reset else next_state;
 		end if;
 	end process;
 	
@@ -70,20 +66,67 @@ begin
 			data_tx <= next_data_tx;
 		end if;
 	end process;
-
+	
 	process(ALL) begin
-		next_byte_count <= byte_count;
-		next_state <= state;
 		next_data_tx <= data_tx;
---		case(state) is
---			when IDLE =>
---				next_byte_count <= 1x"0";
---				x
---			when TX_BYTE_1 => 
---				pass;
---			when TX_BYTE_2 =>
---				pass;								
---		end case;
+		next_state <= state;
+		write <= '1';
+		case(state) is
+			when IDLE => 
+				next_data_tx <= 8x"0";
+				next_state <= WAIT_TXE_LOW;
+			when WAIT_TXE_LOW =>
+				if txe = '0' then
+					next_state <= TRANSMIT;
+				else
+					next_state <= WAIT_TXE_LOW;
+				end if;
+			when TRANSMIT =>
+				write <= '0';
+				if txe = '1' then
+					next_state <= WAIT_TXE_LOW;
+				else
+					next_data_tx <= data_tx + 1;
+					next_state <= TRANSMIT;			
+				end if;
+		end case;
 	end process;
+
+	data_out <= data_tx;
+
+
+----16 BIT-WORD VER
+--	process(clk) begin
+--		if rising_edge(clk) then 
+--			state <= IDLE when reset else next_state;
+--		end if;
+--	end process;
+	
+--	process(clk) begin	
+--		if rising_edge(clk) then
+--			byte_count <= next_byte_count;
+--		end if;
+--	end process;
+	
+--	process(clk) begin
+--		if rising_edge(clk) then
+--			data_tx <= next_data_tx;
+--		end if;
+--	end process;
+
+--	process(ALL) begin
+--		next_byte_count <= byte_count;
+--		next_state <= state;
+--		next_data_tx <= data_tx;
+----		case(state) is
+----			when IDLE =>
+----				next_byte_count <= 1x"0";
+----				x
+----			when TX_BYTE_1 => 
+----				pass;
+----			when TX_BYTE_2 =>
+----				pass;								
+----		end case;
+--	end process;
 
 end Behavioral;

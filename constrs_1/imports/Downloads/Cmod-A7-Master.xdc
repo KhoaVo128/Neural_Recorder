@@ -130,3 +130,12 @@ set_property -dict { PACKAGE_PIN V8    IOSTANDARD LVCMOS33 } [get_ports { pio48 
 #set_property -dict { PACKAGE_PIN R19   IOSTANDARD LVCMOS33 } [get_ports { RamWEn     }]; #IO_L10N_T1_D15_14 Sch=sram-we
 #set_property -dict { PACKAGE_PIN N19   IOSTANDARD LVCMOS33 } [get_ports { RamCEn     }]; #IO_L9N_T1_DQS_D13_14 Sch=sram-ce
 
+#GIO_IO vector mapping
+set_property -dict { PACKAGE_PIN C15   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[0] }]; #IO_L11P_T1_SRCC_16 Sch=pio[05]
+set_property -dict { PACKAGE_PIN H1    IOSTANDARD LVCMOS33 } [get_ports { gpio_io[1] }]; #IO_L3P_T0_DQS_AD5P_35 Sch=pio[06]
+set_property -dict { PACKAGE_PIN A15   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[2] }]; #IO_L6N_T0_VREF_16 Sch=pio[07]
+set_property -dict { PACKAGE_PIN B15   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[3] }]; #IO_L11N_T1_SRCC_16 Sch=pio[08]
+set_property -dict { PACKAGE_PIN A14   IOSTANDARD LVCMOS33 } [get_ports { gpio_io[4] }]; #IO_L6P_T0_16 Sch=pio[09]
+set_property -dict { PACKAGE_PIN J3    IOSTANDARD LVCMOS33 } [get_ports { gpio_io[5] }]; #IO_L7P_T1_AD6P_35 Sch=pio[10]
+set_property -dict { PACKAGE_PIN J1    IOSTANDARD LVCMOS33 } [get_ports { gpio_io[6] }]; #IO_L3N_T0_DQS_AD5N_35 Sch=pio[11]
+set_property -dict { PACKAGE_PIN K2    IOSTANDARD LVCMOS33 } [get_ports { gpio_io[7] }]; #IO_L5P_T0_AD13P_35 Sch=pio[12]
