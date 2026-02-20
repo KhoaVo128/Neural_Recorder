@@ -31,7 +31,7 @@ use IEEE.NUMERIC_STD_UNSIGNED.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity data_generator is
+entity data_generator_v2 is
 	Port (
 		clk			: in std_logic;
 		reset		: in std_logic;
@@ -40,18 +40,18 @@ entity data_generator is
 		write		: out std_logic;
 		data_out	: out std_logic_vector(7 downto 0)	
 	);
-end data_generator;
+end data_generator_v2;
 
-architecture Behavioral of data_generator is
+architecture Behavioral of data_generator_v2 is
 ----STATES AND STUFF
 	--type state_t is  (IDLE, TX_BYTE_1, TX_BYTE_2);
-	type state_t is  (RESET_ST, WAIT_ST,WRITE_ST);
+	type state_t is  (IDLE,WAIT_TXE_LOW, LOAD, TRANSMIT);
 	signal state, next_state: state_t;
 
 ----DATA TO BE TRANSMITED	
 	--signal data_tx, next_data_tx: std_logic_vector (15 downto 0);
 	signal data_tx, next_data_tx : std_logic_vector (7 downto 0);
-	signal wr, next_wr : std_logic;
+	signal wr : std_logic;
 ----WHICH BYTE TO TRANSFER
 	--signal byte_count, next_byte_count: std_logic_vector (0 downto 0);
 	
@@ -60,13 +60,10 @@ begin
 	process(clk) begin
 		if rising_edge(clk) then
 			if reset = '1' then
-				state	<= RESET_ST;
-				wr		<= '0';
-				data_tx	<= 8d"67";
+				state<=IDLE;
 			else
 				data_tx <= next_data_tx;
-				state	<= next_state;
-				wr 		<= next_wr;
+				state<=next_state;
 			end if;	
 		end if;
 	end process;
@@ -74,30 +71,31 @@ begin
 	process(ALL) begin
 		next_data_tx <= data_tx;
 		next_state <= state;
-		next_wr <= wr;
+		wr <= '1';
 		case(state) is
-			when RESET_ST =>
-				next_data_tx <= 8x"0";	
-				-- DO WHATEVER IN THE RESET STATE THEN MOVE ON TO WAIT STATE
-				next_state <= WAIT_ST;
-			when WAIT_ST =>
-				if txe = '0' then
-					next_wr <= '0';
-					next_state <= WRITE_ST;
+			when IDLE =>
+				next_data_tx <= 8x"0";
+				if reset = '1' then
+					next_state <= IDLE;
 				else
-					next_wr <= '1';
-					next_state <= WAIT_ST;
+					next_state <= WAIT_TXE_LOW;
 				end if;
-			when WRITE_ST =>
-				next_data_tx <= data_tx  + 1;
+			when WAIT_TXE_LOW =>
 				if txe = '0' then
-					next_wr <= '0';
-					next_data_tx <= data_tx  + data_tx;
-					next_state <= WRITE_ST;
+					next_state <= LOAD;
 				else
-					next_wr <= '1';
-					next_state <= WAIT_ST;
-				end if; 
+					next_state <= WAIT_TXE_LOW;
+				end if;
+			when LOAD =>
+				next_data_tx <= data_tx + 1;
+				next_state <= TRANSMIT;
+			when TRANSMIT =>
+				wr <= '0';
+				if txe = '1' then
+					next_state <= WAIT_TXE_LOW;
+				else
+					next_state <= LOAD;			
+				end if;
 		end case;
 	end process;
 	write <= wr;
